@@ -3,7 +3,7 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create
 function preload() {
     game.load.image('map', 'asset/foret.png');
     game.load.image('player', 'asset/player.png');
-    game.load.image('bullet', 'asset/shmup-bullet.png')
+    game.load.image('bullet', 'asset/bullet.png')
     game.load.image('pinata', 'asset/pinata.jpg');
     game.load.image('playerWP', 'asset/jesus.png');
     game.load.image('ennemy', 'asset/soral.png');
@@ -86,6 +86,8 @@ function create() {
     firebuttonLEFT = game.input.keyboard.addKey(Phaser.KeyCode.Q);
 
 
+ 
+
 
 }
 
@@ -123,35 +125,36 @@ function getKippa(player1, kippa) {
 
 }
 
-function killEnnemyWeapon(weapon, enem) {
+function killEnnemyWeapon(weapon, enememy1) {
 
-    enem.kill();
+    enememy1.kill();
     console.log("BOOBS!");
 
 }
-
-
-
+function followPlayer(ennemys){
+ /*  ennemys.rotation=*/ game.physics.arcade.moveToObject(ennemys,player1,150);
+}
 
 
 function update() {
 
     player1.body.velocity.x = 0;
     player1.body.velocity.y = 0;
+    ennemys.forEach(followPlayer);
 
     if (touches.up.isDown) {
 
-        player1.body.velocity.y = -600;
+        player1.body.velocity.y = -300;
     } else {
         if (touches.down.isDown) {
-            player1.body.velocity.y = 600;
+            player1.body.velocity.y = 300;
         }
     }
     if (touches.left.isDown) {
-        player1.body.velocity.x = -600;
+        player1.body.velocity.x = -300;
     } else {
         if (touches.right.isDown) {
-            player1.body.velocity.x = 600;
+            player1.body.velocity.x = 300;
         }
     }
     if (powerUp == "true") {
@@ -181,6 +184,7 @@ function update() {
     game.physics.arcade.collide(player1, kippa, getKippa);
     game.physics.arcade.overlap(weapon.bullets, ennemys, killEnnemyWeapon, null, this);
 
+  
 }
 
 
