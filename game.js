@@ -1,13 +1,14 @@
 var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
 
 function preload() {
-    game.load.image('map', 'asset/debug-grid-1920x1920.png');
+    game.load.image('map', 'asset/foret.png');
     game.load.image('player', 'asset/player.png');
     game.load.image('bullet', 'asset/shmup-bullet.png')
-    game.load.image('kippa', 'asset/kippa.jpg');
+    game.load.image('pinata', 'asset/pinata.jpg');
     game.load.image('playerWP', 'asset/jesus.png');
     game.load.image('ennemy', 'asset/soral.png');
     game.load.audio('chancla', 'asset/audio/risitas-la-chancla.mp3');
+    game.load.audio('poliment', 'asset/audio/SoralIntro.mp3');
 
 }
 var touches;
@@ -20,13 +21,15 @@ var firebuttonRIGHT;
 var firebuttonLEFT;
 var sound;
 var ennemys;
+var hp;
+var soundSoral;
 
 function create() {
 
     game.add.tileSprite(0, 0, 1920, 1920, 'map');
     game.world.setBounds(0, 0, 1920, 1920);
 
-   //FULLSCREEN
+    //FULLSCREEN
     game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
     game.input.onDown.add(gofull, this);
 
@@ -41,6 +44,8 @@ function create() {
 
     //SOUND
     sound = game.add.audio('chancla');
+    soundSoral = game.add.audio('poliment');
+
 
 
 
@@ -48,35 +53,26 @@ function create() {
     game.camera.follow(player1, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
 
     //ITEM
-    kippa = game.add.sprite(game.world.randomX, game.world.randomY, 'kippa');
+    kippa = game.add.sprite(game.world.randomX, game.world.randomY, 'pinata');
     game.physics.arcade.enable(kippa);
     kippa.body.collideWorldBounds = true;
     kippa.body.fixedRotation = true;
 
-
-
-
+    //ENNEMIES 
+    ennemys = game.add.group();
+    ennemys.enableBody = true;
+    ennemys.physicsBodyType = Phaser.Physics.ARCADE;
+    game.time.events.repeat(Phaser.Timer.SECOND * 2, 1, createEnnemy, this);
 
     //WEAPON
     weapon = game.add.weapon(30, 'bullet');
     weapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
     //vitesse des balles
-     weapon.bulletSpeed = 600;
-     weapon.trackSprite(player1, false);
-     game.physics.arcade.enable(weapon);
+    weapon.bulletSpeed = 600;
+    weapon.trackSprite(player1, false);
+    game.physics.arcade.enable(weapon);
 
-    //ENNEMIES
-    ennemys = game.add.group();
-    ennemys.enableBody = true;
-    ennemys.physicsBodyType = Phaser.Physics.ARCADE;
-    for (var i = 0; i <20; i++) {
-        var en=ennemys.create(game.world.randomX, game.world.randomY,'ennemy');
-        
-         en.name='enememy1'
-      
-        //ennemy.body.collideWorldBounds = true;
-    }
-   
+
 
 
 
@@ -92,14 +88,28 @@ function create() {
 
 
 }
+
+//ENNEMIES
+function createEnnemy() {
+
+
+    for (var i = 0; i < 5; i++) {
+        var en = ennemys.create(game.world.randomX, game.world.randomY, 'ennemy');
+
+        en.name = 'enememy1'
+
+        //ennemy.body.collideWorldBounds = true;
+    }   
+    soundSoral.play();
+}
+
+
 function gofull() {
 
-    if (game.scale.isFullScreen)
-    {
+    if (game.scale.isFullScreen) {
         game.scale.stopFullScreen();
     }
-    else
-    {
+    else {
         game.scale.startFullScreen(false);
     }
 
@@ -113,11 +123,11 @@ function getKippa(player1, kippa) {
 
 }
 
-function killEnnemyWeapon(weapon,enem ) {
+function killEnnemyWeapon(weapon, enem) {
 
- 
     enem.kill();
     console.log("BOOBS!");
+
 }
 
 
@@ -169,7 +179,7 @@ function update() {
     }
     //COLLISION 
     game.physics.arcade.collide(player1, kippa, getKippa);
-    game.physics.arcade.overlap(weapon.bullets, ennemys, killEnnemyWeapon,null,this);
+    game.physics.arcade.overlap(weapon.bullets, ennemys, killEnnemyWeapon, null, this);
 
 }
 
@@ -177,7 +187,8 @@ function update() {
 
 function render() {
 
-    game.debug.cameraInfo(game.camera, 32, 32);
+    //game.debug.cameraInfo(game.camera, 32, 32);
     //  game.debug.bodyInfo(player1, 32, 500);
+    game.debug.text("Time until event: " + game.time.events.duration.toFixed(0), 32, 32);
 
 }
