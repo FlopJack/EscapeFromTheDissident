@@ -9,6 +9,7 @@ function preload() {
     game.load.image('ennemy', 'asset/soral.png');
     game.load.audio('chancla', 'asset/audio/risitas-la-chancla.mp3');
     game.load.audio('poliment', 'asset/audio/SoralIntro.mp3');
+    game.load.audio('deja','asset/audio/deja.mp3');
 
 }
 var touches;
@@ -21,8 +22,8 @@ var firebuttonRIGHT;
 var firebuttonLEFT;
 var sound;
 var ennemys;
-var hp;
 var soundSoral;
+var song;
 
 function create() {
 
@@ -41,11 +42,12 @@ function create() {
     game.physics.arcade.enable(player1);
     player1.body.collideWorldBounds = true;
     player1.body.fixedRotation = true;
+	player1.health=10;
 
     //SOUND
     sound = game.add.audio('chancla');
     soundSoral = game.add.audio('poliment');
-
+    song=game.add.audio('deja');
 
 
 
@@ -63,11 +65,13 @@ function create() {
     ennemys.enableBody = true;
     ennemys.physicsBodyType = Phaser.Physics.ARCADE;
     game.time.events.repeat(Phaser.Timer.SECOND * 2, 1, createEnnemy, this);
+     game.physics.arcade.enable(ennemys);
+     
+	
 
     //WEAPON
     weapon = game.add.weapon(30, 'bullet');
     weapon.bulletKillType = Phaser.Weapon.KILL_WORLD_BOUNDS;
-    //vitesse des balles
     weapon.bulletSpeed = 600;
     weapon.trackSprite(player1, false);
     game.physics.arcade.enable(weapon);
@@ -99,8 +103,11 @@ function createEnnemy() {
         var en = ennemys.create(game.world.randomX, game.world.randomY, 'ennemy');
 
         en.name = 'enememy1'
-
-        //ennemy.body.collideWorldBounds = true;
+		en.health=50;
+        game.physics.arcade.enable(en);
+        en.body.collideWorldBounds = true;
+        en.body.setCircle();
+		
     }   
     soundSoral.play();
 }
@@ -121,26 +128,39 @@ function getKippa(player1, kippa) {
     powerUp = "true";
     kippa.kill();
     player1.loadTexture('playerWP', 0);
-    sound.play();
+    song.play();
 
 }
 
-function killEnnemyWeapon(weapon, enememy1) {
+function killEnnemyWeapon(weapon, enemy1) {
 
-    enememy1.kill();
-    console.log("BOOBS!");
-
+  enemy1.damage(5); 
+  weapon.kill();
+ 
+ console.log(enemy1.health);
+  
 }
+
 function followPlayer(ennemys){
- /*  ennemys.rotation=*/ game.physics.arcade.moveToObject(ennemys,player1,150);
+ game.physics.arcade.moveToObject(ennemys,player1,150);
+ 
 }
 
+function killPlayer(player1,enemy1){
+	
+  player1.damage(1);
+
+  song.stop();
+ 
+	
+}
 
 function update() {
 
     player1.body.velocity.x = 0;
     player1.body.velocity.y = 0;
     ennemys.forEach(followPlayer);
+	
 
     if (touches.up.isDown) {
 
@@ -161,6 +181,7 @@ function update() {
         if (firebuttonUP.isDown) {
             weapon.fireAngle = Phaser.ANGLE_UP;
             weapon.fire();
+            sound.play();
         } else {
 
             if (firebuttonDOWN.isDown) {
@@ -183,7 +204,8 @@ function update() {
     //COLLISION 
     game.physics.arcade.collide(player1, kippa, getKippa);
     game.physics.arcade.overlap(weapon.bullets, ennemys, killEnnemyWeapon, null, this);
-
+	game.physics.arcade.collide(ennemys);
+	game.physics.arcade.collide(player1,ennemys,followPlayer);
   
 }
 
@@ -191,8 +213,7 @@ function update() {
 
 function render() {
 
-    //game.debug.cameraInfo(game.camera, 32, 32);
-    //  game.debug.bodyInfo(player1, 32, 500);
-    game.debug.text("Time until event: " + game.time.events.duration.toFixed(0), 32, 32);
+    game.debug.body(player1);
+    game.debug.text("La bête va être lacher: " + game.time.events.duration.toFixed(0), 32, 32);
 
 }
