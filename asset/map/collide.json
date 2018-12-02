@@ -1,0 +1,15 @@
+{ "columns":64,
+ "image":"base_out_atlas.png",
+ "imageheight":1024,
+ "imagewidth":1024,
+ "margin":0,
+ "name":"collide",
+ "spacing":0,
+ "tilecount":4096,
+ "tiledversion":"1.2.0",
+ "tileheight":16,
+ "tilewidth":16,
+ "transparentcolor":"#ff00ff",
+ "type":"tileset",
+ "version":1.2
+}

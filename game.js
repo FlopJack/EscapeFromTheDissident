@@ -1,15 +1,23 @@
 var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update, render: render });
 
+
 function preload() {
-    game.load.image('map', 'asset/foret.png');
-    game.load.image('player', 'asset/player.png');
+  
+
     game.load.image('bullet', 'asset/bullet.png')
     game.load.image('pinata', 'asset/pinata.jpg');
-    game.load.image('playerWP', 'asset/jesus.png');
+   
     game.load.image('ennemy', 'asset/soral.png');
-    game.load.audio('chancla', 'asset/audio/risitas-la-chancla.mp3');
-    game.load.audio('poliment', 'asset/audio/SoralIntro.mp3');
-    game.load.audio('deja','asset/audio/deja.mp3');
+
+   
+
+
+    game.load.tilemap('map','asset/map/test/laby2.json',null,Phaser.Tilemap.TILED_JSON);
+    game.load.image('tiles','asset/map/test/dungeon_tiles.png');
+    game.load.image('col','asset/map/base_out_atlas.png');
+
+
+    game.load.spritesheet('nPlayer','asset/kemal.png',24,24);
 
 }
 var touches;
@@ -22,49 +30,65 @@ var firebuttonRIGHT;
 var firebuttonLEFT;
 var sound;
 var ennemys;
-var soundSoral;
-var song;
+var map;
+var layer;
+var item;
+var obstacleGroup;
+var wallkable=[73];
+
+
+
 
 function create() {
+    var pathfinder = new PhaserEasystar(game);
+ 
 
-    game.add.tileSprite(0, 0, 1920, 1920, 'map');
+
+    map=game.add.tilemap( 'map');
+    map.addTilesetImage('terrain','tiles');
+  
     game.world.setBounds(0, 0, 1920, 1920);
+    layer = map.createLayer('Calque de Tile 1');
 
+    layer.resizeWorld();
+    map.setCollision([536871083,2684354731,1610612907,171,122]);
+   
     //FULLSCREEN
     game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
     game.input.onDown.add(gofull, this);
 
+
     //PHYSICS
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
-    //PLAYER1
-    player1 = game.add.sprite(game.world.centerX, game.world.centerY, 'player');
+    //NEW PLAYER 
+    player1=game.add.sprite(game.world.randomX,game.world.randomY,'nPlayer');
+    //player1.anchor.setTo(0.5,0.5);
+    //player1.animations.add('marche',[0,4.65],10,true);
     game.physics.arcade.enable(player1);
     player1.body.collideWorldBounds = true;
     player1.body.fixedRotation = true;
 	player1.health=10;
 
     //SOUND
-    sound = game.add.audio('chancla');
-    soundSoral = game.add.audio('poliment');
-    song=game.add.audio('deja');
-
+ 
 
 
     //CAMERA
-    game.camera.follow(player1, Phaser.Camera.FOLLOW_LOCKON, 0.1, 0.1);
+  
+    game.camera.follow(player1, Phaser.Camera.FOLLOW_LOCKON);
 
     //ITEM
-    kippa = game.add.sprite(game.world.randomX, game.world.randomY, 'pinata');
-    game.physics.arcade.enable(kippa);
-    kippa.body.collideWorldBounds = true;
-    kippa.body.fixedRotation = true;
+    item= game.add.sprite(game.world.randomX, game.world.randomY, 'pinata');
+    game.physics.arcade.enable(item);
+    item.body.collideWorldBounds = true;
+    item.body.fixedRotation = true;
 
     //ENNEMIES 
     ennemys = game.add.group();
     ennemys.enableBody = true;
     ennemys.physicsBodyType = Phaser.Physics.ARCADE;
-    game.time.events.repeat(Phaser.Timer.SECOND * 2, 1, createEnnemy, this);
+    game.time.events.repeat(Phaser.Timer.SECOND * 1, 1, createEnnemy, this);
      game.physics.arcade.enable(ennemys);
      
 	
@@ -75,7 +99,7 @@ function create() {
     weapon.bulletSpeed = 600;
     weapon.trackSprite(player1, false);
     game.physics.arcade.enable(weapon);
-
+ 
 
 
 
@@ -90,10 +114,61 @@ function create() {
     firebuttonLEFT = game.input.keyboard.addKey(Phaser.KeyCode.Q);
 
 
- 
+//PATH FINDING
+
+pathfinder.setGrid(map.layers[0].data, wallkable);
 
 
 }
+
+function findPathTo(tilex, tiley) {
+    pathfinder.setCallbackFunction(function(path) {
+        trail.destroy(true, true);
+        if (path === null) {
+            return;
+        }
+
+        var ilen = path.length;
+        for (let i = 0; i < ilen; i++) {
+            var marker = game.add.graphics(path[i].x * 32, path[i].y * 32);
+            marker.data.cellX = path[i].x;
+            marker.data.cellY = path[i].y;
+            trail.add(marker);
+            marker.lineStyle(2, 0xAB4642, 0.8);
+            marker.drawRect(8, 8, 16, 16);
+        }
+        pathToFollow = path;
+    });
+
+    pathfinder.preparePathCalculation([layer.getTileX(sprite.x), layer.getTileY(sprite.y)], [tilex,tiley]);
+    pathfinder.calculatePath();
+}
+function followPath() {
+    if (!pathToFollow.length || followingPath) {
+        return;
+    }
+    var next = pathToFollow.shift();
+    if (!next) {
+        return;
+    }
+    // remove the lit path as we walk it
+    trail.forEach((marker) => {
+        if (marker.data.cellX === next.x && marker.data.cellY === next.y) {
+            marker.destroy();
+        }
+    });
+
+    var x = (next.x * 32) + 2;
+    var y = (next.y * 32) + 2;
+    // console.log("moving to", x, y, next);
+    followingPath = true;
+    movingTween.target = player1;
+    movingTween.timeline = [];
+    movingTween.to({x, y}, 300); 
+    movingTween.start();
+}
+
+
 
 //ENNEMIES
 function createEnnemy() {
@@ -106,11 +181,12 @@ function createEnnemy() {
 		en.health=50;
         game.physics.arcade.enable(en);
         en.body.collideWorldBounds = true;
-        en.body.setCircle();
+        en.body.fixedRotation=true;
 		
     }   
-    soundSoral.play();
+   
 }
+
 
 
 function gofull() {
@@ -124,11 +200,11 @@ function gofull() {
 
 }
 
-function getKippa(player1, kippa) {
+function getItem(player1, item) {
     powerUp = "true";
-    kippa.kill();
-    player1.loadTexture('playerWP', 0);
-    song.play();
+    item.kill();
+   
+
 
 }
 
@@ -141,6 +217,10 @@ function killEnnemyWeapon(weapon, enemy1) {
   
 }
 
+function bulletCollideWord(weapon){
+
+    weapon.kill();
+}
 function followPlayer(ennemys){
  game.physics.arcade.moveToObject(ennemys,player1,150);
  
@@ -150,24 +230,32 @@ function killPlayer(player1,enemy1){
 	
   player1.damage(1);
 
-  song.stop();
+  
  
 	
 }
 
 function update() {
-
+    followPath();
+    game.physics.arcade.collide(player1, layer);
+    game.physics.arcade.collide(ennemys, layer);
+    game.physics.arcade.collide(weapon.bullets,layer,bulletCollideWord);
     player1.body.velocity.x = 0;
     player1.body.velocity.y = 0;
     ennemys.forEach(followPlayer);
-	
+   
 
     if (touches.up.isDown) {
 
         player1.body.velocity.y = -300;
+        player1.scale.x=1;
+        player1.play('marche');
     } else {
         if (touches.down.isDown) {
             player1.body.velocity.y = 300;
+            player1.scale.x=1;
+            player1.play('marche');
+
         }
     }
     if (touches.left.isDown) {
@@ -181,7 +269,7 @@ function update() {
         if (firebuttonUP.isDown) {
             weapon.fireAngle = Phaser.ANGLE_UP;
             weapon.fire();
-            sound.play();
+           
         } else {
 
             if (firebuttonDOWN.isDown) {
@@ -202,10 +290,11 @@ function update() {
 
     }
     //COLLISION 
-    game.physics.arcade.collide(player1, kippa, getKippa);
+    game.physics.arcade.collide(player1, item, getItem);
     game.physics.arcade.overlap(weapon.bullets, ennemys, killEnnemyWeapon, null, this);
 	game.physics.arcade.collide(ennemys);
-	game.physics.arcade.collide(player1,ennemys,followPlayer);
+    game.physics.arcade.collide(player1,ennemys,followPlayer);
+    //game.physics.arcade.overlap(weapon.bullets,)
   
 }
 
@@ -213,7 +302,8 @@ function update() {
 
 function render() {
 
-    game.debug.body(player1);
+    //game.debug.body(player1);
+  //  game.debug.spriteInfo(player1, 32, 32);
     game.debug.text("La bête va être lacher: " + game.time.events.duration.toFixed(0), 32, 32);
 
 }
