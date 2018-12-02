@@ -35,12 +35,12 @@ var layer;
 var item;
 var obstacleGroup;
 var wallkable=[73];
-
+var pathToFollow = [];
 
 
 
 function create() {
-    var pathfinder = new PhaserEasystar(game);
+    var pathfinder= new EasyStar.js(); 
  
 
 
@@ -160,7 +160,7 @@ function followPath() {
 
     var x = (next.x * 32) + 2;
     var y = (next.y * 32) + 2;
-    // console.log("moving to", x, y, next);
+     console.log("moving to", x, y, next);
     followingPath = true;
     movingTween.target = player1;
     movingTween.timeline = [];
@@ -295,7 +295,12 @@ function update() {
 	game.physics.arcade.collide(ennemys);
     game.physics.arcade.collide(player1,ennemys,followPlayer);
     //game.physics.arcade.overlap(weapon.bullets,)
-  
+    if (firebuttonUP.isDown)
+    {
+        blocked = true;
+        findPathTo(layer.getTileX(marker.x), layer.getTileY(marker.y));
+    }
+
 }
 
 
