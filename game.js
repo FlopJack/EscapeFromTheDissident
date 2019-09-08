@@ -17,7 +17,7 @@ function preload() {
     game.load.image('col','asset/map/base_out_atlas.png');
 
 
-    game.load.spritesheet('nPlayer','asset/kemal.png',24,24);
+    game.load.spritesheet('nPlayer','asset/metalslug_mummy37x45*45.png',37,45);
 
 }
 var touches;
@@ -63,8 +63,10 @@ function create() {
 
     //NEW PLAYER 
     player1=game.add.sprite(game.world.randomX,game.world.randomY,'nPlayer');
-    //player1.anchor.setTo(0.5,0.5);
-    //player1.animations.add('marche',[0,4.65],10,true);
+ // var anim=new Animation(player1);
+    player1.anchor.setTo(0.5,0.5);
+  var walk= player1.animations.add('marche');
+  player1.animations.play(walk,1,true);
     game.physics.arcade.enable(player1);
     player1.body.collideWorldBounds = true;
     player1.body.fixedRotation = true;
@@ -171,6 +173,7 @@ function followPath() {
 
 
 //ENNEMIES
+
 function createEnnemy() {
 
 
@@ -242,7 +245,7 @@ function update() {
     game.physics.arcade.collide(weapon.bullets,layer,bulletCollideWord);
     player1.body.velocity.x = 0;
     player1.body.velocity.y = 0;
-    ennemys.forEach(followPlayer);
+  //  ennemys.forEach(followPlayer);
    
 
     if (touches.up.isDown) {
@@ -260,9 +263,11 @@ function update() {
     }
     if (touches.left.isDown) {
         player1.body.velocity.x = -300;
+        player1.play('marche');
     } else {
         if (touches.right.isDown) {
             player1.body.velocity.x = 300;
+            player1.play('marche');
         }
     }
     if (powerUp == "true") {
@@ -309,6 +314,6 @@ function render() {
 
     //game.debug.body(player1);
   //  game.debug.spriteInfo(player1, 32, 32);
-    game.debug.text("La bête va être lacher: " + game.time.events.duration.toFixed(0), 32, 32);
+    game.debug.text("La bête va être laché: " + game.time.events.duration.toFixed(0), 32, 32);
 
 }
