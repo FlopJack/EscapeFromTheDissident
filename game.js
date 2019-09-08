@@ -17,7 +17,7 @@ function preload() {
     game.load.image('col','asset/map/base_out_atlas.png');
 
 
-    game.load.spritesheet('nPlayer','asset/metalslug_mummy37x45*45.png',37,45);
+    game.load.spritesheet('nPlayer','asset/mummy.png',37,45);
 
 }
 var touches;
